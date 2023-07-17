@@ -83,7 +83,7 @@ def negamax(depth, board, alpha, beta, player):
         last_move = board.pop()
         if -score[0] > max:
             max = -score[0]
-            best_move = last_move
+            worst_move = last_move
     
     return (max, best_move)
 
