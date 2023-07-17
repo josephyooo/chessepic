@@ -121,6 +121,8 @@ def main():
         board.push(move)
 
 
+# change made
+
     print(board)
     print(board.fullmove_number)
     print(board.outcome())
