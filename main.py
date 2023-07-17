@@ -83,7 +83,7 @@ def negamax(depth, board, alpha, beta, player):
         last_move = board.pop()
         if -score[0] > max:
             max = -score[0]
-            worst_move = last_move
+            best_move = last_move
     
     return (max, best_move)
 
@@ -120,8 +120,6 @@ def main():
             # move = engine.play(board, chess.engine.Limit(depth=1, time=1e-10000)).move
         board.push(move)
 
-
-# change made
 
     print(board)
     print(board.fullmove_number)
