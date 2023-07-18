@@ -86,7 +86,7 @@ def negamaxalphabeta(depth, board, alpha, beta, player):
     best_move = 0
     for move in legal_moves:
         board.push(move)
-        score = negamaxalphabeta(depth - 1, board, -alpha, -beta, not player)
+        score = negamaxalphabeta(depth - 1, board, -beta, -alpha, not player)
         last_move = board.pop()
         if -score[0] > value:
             value = -score[0]
@@ -129,6 +129,22 @@ evaluation algorithm
 - positions have score
     heat map to determine where
     early to mid to late game can be determined by number of pieces left
+
+
+Order of business
+    - efficiency
+        - choose order of moves to run through
+            - by human thinking (dont move piece into danger)
+        - search depths sequentially
+            - keep best moves to search first in later depths
+    - improve ability to evaluate moves
+        - checkmate is infinity evaluation
+        - add ability to see checkmate in two
+        - heat map
+        - endgame vs middle vs early game eval
+    - opening/endgame database
+    - uci compatiblity
+    - arena chess gui
 """
 
 
@@ -137,17 +153,20 @@ def main():
 
     engine = chess.engine.SimpleEngine.popen_uci("C:/Users/fizzy/Downloads/t/stockfish/stockfish-windows-x86-64-avx2.exe")
 
-    sum = 0
+
+    whitetime = 0
+    blacktime = 0
     while not board.is_checkmate():
+        start = perf_counter()
         if board.is_game_over():
             break
         if board.turn:
-            start = perf_counter()
-            move = negamaxalphabeta(1, board, -inf, inf, True)[1]
-            sum += perf_counter() - start
+            move = negamaxalphabeta(4, board, -inf, inf, True)[1]
+            whitetime += perf_counter() - start
         else:
-            # move = generate_random_move(board)
-            move = negamax(2, board, False)[1]
+            move = generate_random_move(board)
+            # move = negamax(2, board, False)[1]
+            blacktime += perf_counter() - start
             # move = engine.play(board, chess.engine.Limit(depth=1, time=1e-10000)).move
         board.push(move)
 
@@ -157,7 +176,8 @@ def main():
     print(board.outcome())
     print(board.peek())
     print(evaluate_board(board))
-    print(sum / (board.fullmove_number // 2))
+    print(f"White time: {whitetime}, Black time: {blacktime}")
+    print(f"{blacktime / whitetime}")
 
 if __name__ == "__main__":
     while True:
