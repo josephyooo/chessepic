@@ -13,17 +13,17 @@ evaluation algorithm
     early to mid to late game can be determined by number of pieces left
 
 
-Order of business
-    - efficiency
-        - choose order of moves to run through
-            - by human thinking (dont move piece into danger)
-        - search depths sequentially
-            - keep best moves to search first in later depths
-    - improve ability to evaluate moves
-        - checkmate is infinity evaluation
-        - add ability to see checkmate in two
-        - heat map
-        - endgame vs middle vs early game eval
-    - opening/endgame database
-    - uci compatiblity
-    - arena chess gui
+# Order of business
+## efficiency
+      - ### choose order of moves to run through
+          - [ ] by human thinking (dont move piece into danger)
+      - ### search depths sequentially
+          - [ ] **keep best moves to search first in later depths**
+## improve ability to evaluate moves
+- [x] checkmate is infinity evaluation
+- [x] add ability to see checkmate in two
+- [ ] heat map
+- [ ] endgame vs middle vs early game eval
+## opening/endgame database
+## uci compatiblity
+## arena chess gui

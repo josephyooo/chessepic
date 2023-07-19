@@ -68,11 +68,6 @@ class EpicEngine:
 
 
 
-        
-
-
-
-
 if __name__ == "__main__":
     engine = EpicEngine()
     while True:
