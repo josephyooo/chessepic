@@ -4,13 +4,13 @@ class EpicEngine:
     def __init__(self):
         self.active = True
         self.id = "EpicEngine"
-        self.authors = "..."
+        self.author = "the EpicEngine developers (see AUTHORS file)"
         self.debug = False
         self.board = Board()
         self.state = 0
         # [curr, default, min, max]
         self.options = {
-            "a": [1,1,1,1],
+            # "Depth": [3,3,0,0],
         }
     
     def is_ready(self) -> bool:

@@ -18,18 +18,18 @@ def main():
     whitetime = 0
     blacktime = 0
     while not board.is_checkmate():
-        print("-"*10)
-        print(board.fen())
-        print(board)
+        # print("-"*10)
+        # print(board.fen())
+        # print(board)
         start = perf_counter()
         if board.is_game_over():
             break
         if board.turn:
-            user_move(board)
+            move = generate_random_move(board)
             whitetime += perf_counter() - start
             
         else:
-            move = negamaxalphabeta(3, board, -inf, inf, False)[1]
+            move = negamaxalphabeta(6, board, -inf, inf, False)[1]
             #move = generate_random_move(board)
             #move = negamax(2, board, False)[1]
             blacktime += perf_counter() - start

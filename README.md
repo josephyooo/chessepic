@@ -15,15 +15,17 @@ evaluation algorithm
 
 # Order of business
 ## efficiency
-      - ### choose order of moves to run through
-          - [ ] by human thinking (dont move piece into danger)
-      - ### search depths sequentially
-          - [ ] **keep best moves to search first in later depths**
+### choose order of moves to run through
+- [ ] **by human thinking (dont move piece into danger)**
+- ### search depths sequentially
+    - [ ] **keep best moves to search first in later depths**
 ## improve ability to evaluate moves
 - [x] checkmate is infinity evaluation
 - [x] add ability to see checkmate in two
 - [ ] heat map
 - [ ] endgame vs middle vs early game eval
+- [ ] rank different checkmate outcomes
+- [ ] game phase eval
 ## opening/endgame database
 ## uci compatiblity
 ## arena chess gui
