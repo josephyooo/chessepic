@@ -1,3 +1,4 @@
+from math import inf
 def evaluate_board(board):
     fen = board.fen()
     fen = fen.split()[0]
@@ -24,4 +25,6 @@ def evaluate_board(board):
                 score -= 5
             case "b":
                 score -= 3
+        if is_checkmate():
+            score += inf
     return score
