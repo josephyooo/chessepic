@@ -29,7 +29,7 @@ def main():
             whitetime += perf_counter() - start
             
         else:
-            move = negamaxalphabeta(6, board, -inf, inf, False)[1]
+            move = negamaxalphabeta(3, board, -inf, inf, False)[1]
             #move = generate_random_move(board)
             #move = negamax(2, board, False)[1]
             blacktime += perf_counter() - start
