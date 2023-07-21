@@ -24,7 +24,7 @@ def evaluate_board(board):
         if piece.isalpha():
             score += PIECE_VALUES[piece]
     if board.is_checkmate(): # brilliant !!!
-        score += inf
+        score += 50000
     return score
 
 def evaluate_game_phase(board):

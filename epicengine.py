@@ -33,14 +33,17 @@ class EpicEngine:
         # get_moves(self.board, player)
         #eval
         #return info periodically
+        # info is depth, seldepth, time, nodes, pv, multipv, score(cp, mate, lowerbound, upperbound, currmove, currmovenumber, hashfull, 
+        # nps, tbhits, sbhits, cpuload, string, refutation, currline, )
         #return best_move and ponder
 
-        move = negamaxalphabeta(2, self.board, -inf, inf, player)[1]
-    
-        print(move)
-        return move
+        move = negamaxalphabeta(4, self.board, -inf, inf, player)[1]
+        
+        bestmove = "bestmove " + str(move) + " \n"
+        
+        return bestmove
 
-        self.board.push(move)
+        #self.board.push(move)
 
     def is_ready(self) -> bool:
         return self.active
@@ -66,7 +69,7 @@ class EpicEngine:
             print("done")
 
         if tokens[0] == "uci":
-            output = f"id name {self.id}\nid author {self.authors}\n"
+            output = f"id name {self.id}\nid author {self.author}\n"
             for key, value in self.options:
                 curr, default, min, max = value
                 output += f"option name {key} type {default.__class__.__name__} default"
@@ -94,12 +97,16 @@ class EpicEngine:
                     return "Value must be provided."
                 # except for no such option
                 self.options[tokens[2:valuei]] = tokens[valuei + 1:]
+        elif tokens[0] == "ucinewgame":
+            self.board.reset()
+            return "got it"
+
         elif tokens[0] == "position":
             try:
                 movesi = tokens.index("moves")
             except ValueError as e:
                 movesi = -1
-            if movesi != 1:
+            if movesi != 2:
                 mode = tokens[1]
                 if mode == "fen":
                     self.set_board(tokens[2])
@@ -108,19 +115,22 @@ class EpicEngine:
                     self.board.reset()
                     return
             
-            if movesi == -1:
+            if movesi == 2:
                 moves = []
+                if tokens.index("startpos") == 1:
+                    self.board.reset()
                 for movetoken in tokens[movesi+1:]:
-                    move = chess.Moves.from_uci(movetoken)
+                    move = chess.Move.from_uci(movetoken)
                     if move in self.board.legal_moves:
                         moves.append(move)
+                        self.board.push(move)
                     else:
                         return "Invalid move"
-                if moves:
-                    for move in moves:
-                        self.board.push(move)
-
-            return "Error: position [ fen <fenstring> | <startpos> ] moves <move1> ... <movei>"
+                
+                # if moves:
+                #     for move in moves:
+                #         self.board.push(move)
+            #return "Error: position [ fen <fenstring> | <startpos> ] moves <move1> ... <movei>"
         elif tokens[0] == "go":
             options = " ".join(tokens[1:])
             potential_options = "searchmoves ponder wtime btime winc binc movestogo depth nodes mate movetime infinite".split()
@@ -147,9 +157,7 @@ class EpicEngine:
                 args = parser.parse_args(options)
             except:
                 return
-            
-            self.go(args)
-            return
+            return self.go(args)
                 
             
             
@@ -160,9 +168,9 @@ async def main():
     engine = EpicEngine()
     while True:
         cmd = input()
-        # cmd = "go ponder"
-        await engine.parse_cmd(cmd)
-        # input()
+        # cmd = "go infinite"
+        result = await engine.parse_cmd(cmd)
+        print(result)
     
 
 if __name__ == "__main__":

@@ -100,6 +100,8 @@ def negamaxalphabeta(depth, board, alpha, beta, player):
         if -score[0] > value:
             value = -score[0]
             best_move = last_move
+        # if best_move == 0:
+        #     best_move = legal_moves[0]
         alpha = max(alpha, value)
         if alpha >= beta:
             break
@@ -123,3 +125,12 @@ def negamax(depth, board, player):
             best_move = last_move
     
     return (max, best_move)
+
+
+
+
+
+
+
+
+
