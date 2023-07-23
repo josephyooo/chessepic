@@ -3,4 +3,6 @@ Pipfile
 Pipfile.lock
 build
 dist
-engine.spec
+epicengine.spec
+.vscode
+asynciotest.py
