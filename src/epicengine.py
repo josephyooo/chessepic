@@ -19,7 +19,10 @@ class EpicEngine:
         self.options = {
             # "Depth": [3,3,0,0],
         }
-    def go(self, args):
+        #              keep searching?, bestmove
+        self.best_move = 0
+        self.tasks = {}
+    async def go(self, args):
         #movetime
         # (searchmoves=None, ponder=True, 
         #  btime=None, wtime=None, winc=None, binc=None, movestogo=None, depth=None, nodes=None, mate=None, movetime=inf)
@@ -37,13 +40,34 @@ class EpicEngine:
         # nps, tbhits, sbhits, cpuload, string, refutation, currline, )
         #return best_move and ponder
 
-        move = negamaxalphabeta(4, self.board, -inf, inf, player)[1]
-        
-        bestmove = "bestmove " + str(move) + " \n"
-        
-        return bestmove
+        # move_finder = asyncio.create_task(self.increasing_depth_search(player))
+        # self.tasks.add(move_finder)
+        # self.best_move = 0
+        try:
+            depth = 1
+            while True:
+                print(depth, self.best_move)
+                self.best_move = negamaxalphabeta(depth, self.board, -inf, inf, player)[1]
+                depth += 1
+        except asyncio.CancelledError:
+            print("cancelled")
+            bestmove = "bestmove " + str(self.best_move) + " \n"
+            
+            self.best_move = bestmove
+            return bestmove
 
         #self.board.push(move)
+    
+    # async def increasing_depth_search(self, player):
+    #     depth = 1
+    #     while True:
+    #         print(depth, self.best_move)
+    #         self.best_move = negamaxalphabeta(depth, self.board, -inf, inf, player)[1]
+    #         depth += 1
+
+
+    def stop(self):
+        self.tasks.get(0).cancel()
 
     def is_ready(self) -> bool:
         return self.active
@@ -157,7 +181,10 @@ class EpicEngine:
                 args = parser.parse_args(options)
             except:
                 return
-            return self.go(args)
+            return await self.go(args)
+        elif tokens[0] == "stop":
+            self.stop()
+            return
                 
             
             

@@ -84,14 +84,15 @@ def user_move(board):
 #                 best_move = last_move
 #         return (min, best_move)
 
-def negamaxalphabeta(depth, board, alpha, beta, player):
+def negamaxalphabeta(depth, board, alpha, beta, player, legal_moves=0):
     if depth == 0:
         evaluation = evaluate_board(board)
         if not player: evaluation *= -1
         return (evaluation, board.peek())
 
     value = -inf
-    legal_moves = get_moves(board, player)
+    if not legal_moves:
+        legal_moves = get_moves(board, player)
     best_move = 0
     for move in legal_moves:
         board.push(move)
