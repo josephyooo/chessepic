@@ -1,1 +1,1 @@
-pyinstaller -F epicengine.py
+pyinstaller -F src/epicengine.py
