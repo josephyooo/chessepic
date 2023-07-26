@@ -28,7 +28,7 @@ def get_moves(board, player):
         chess.KING: "K",
     }
 
-
+    
     color = chess.WHITE if player else chess.BLACK
     moves = [i for i in board.legal_moves]
     #for the moves in list, order by piece type| piece_type_at
@@ -39,7 +39,8 @@ def get_moves(board, player):
     
     sorted_moves = [move for _,move in sorted(zip(pieces, moves), key=lambda pair: PIECE_VALUES[PIECE_TRANSLATE[pair[0]]], reverse=True)]
     # sorted_moves.sort(reverse=True, key=lambda piece: PIECE_VALUES[PIECE_TRANSLATE[piece]])
-
+    #takes sorted moves and orders them based off whether they attack, capture, or whatever 
+    
     # shuffle(moves)
     return sorted_moves
 
@@ -84,7 +85,7 @@ def user_move(board):
 #                 best_move = last_move
 #         return (min, best_move)
 
-def negamaxalphabeta(depth, board, alpha, beta, player):
+def negamaxalphabeta(self, depth, board, alpha, beta, player):
     if depth == 0:
         evaluation = evaluate_board(board)
         if not player: evaluation *= -1
@@ -94,17 +95,18 @@ def negamaxalphabeta(depth, board, alpha, beta, player):
     legal_moves = get_moves(board, player)
     best_move = 0
     for move in legal_moves:
-        board.push(move)
-        score = negamaxalphabeta(depth - 1, board, -beta, -alpha, not player)
-        last_move = board.pop()
-        if -score[0] > value:
-            value = -score[0]
-            best_move = last_move
-        if best_move == 0:
-             best_move = legal_moves[0]
-        alpha = max(alpha, value)
-        if alpha >= beta:
-            break
+        if self.continuesearch:
+            board.push(move)
+            score = negamaxalphabeta(self, depth - 1, board, -beta, -alpha, not player)
+            last_move = board.pop()
+            if -score[0] > value:
+                value = -score[0]
+                best_move = last_move
+            if best_move == 0:
+                best_move = legal_moves[0]
+            alpha = max(alpha, value)
+            if alpha >= beta:
+                break
     
     return (value, best_move)
 

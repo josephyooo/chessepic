@@ -1,6 +1,7 @@
 import asyncio
 import argparse
 from math import inf
+from time import perf_counter
 
 import chess
 
@@ -14,31 +15,60 @@ class EpicEngine:
         self.author = "the EpicEngine developers (see AUTHORS file)"
         self.debug = False
         self.board = chess.Board()
-        self.state = 0
+        self.continuesearch = True
         # [curr, default, min, max]
         self.options = {
             # "Depth": [3,3,0,0],
         }
+
+        self.search = negamaxalphabeta
     def go(self, args):
         #movetime
         # (searchmoves=None, ponder=True, 
+        
         #  btime=None, wtime=None, winc=None, binc=None, movestogo=None, depth=None, nodes=None, mate=None, movetime=inf)
         #clock() = time
         #setclock() = clock()
         #setclock() -= emt()
         #for searchmoves it needs to push board and depth - 1,
-
+        
         #search
         player = True if self.board.turn == chess.WHITE else False
+        
+
+        
+
         # get_moves(self.board, player)
         #eval
         #return info periodically
         # info is depth, seldepth, time, nodes, pv, multipv, score(cp, mate, lowerbound, upperbound, currmove, currmovenumber, hashfull, 
         # nps, tbhits, sbhits, cpuload, string, refutation, currline, )
         #return best_move and ponder
-
-        move = negamaxalphabeta(4, self.board, -inf, inf, player)[1]
+        timeleft = 0
+        if args.wtime or args.btime:
+            if player:
+                timeleft = args.wtime
+            else:
+                timeleft = args.btime
         
+        depth=1
+        move = 0
+        starttime = perf_counter()
+        while self.continuesearch:
+            move = negamaxalphabeta(self, depth, self.board, -inf, inf, player)[1]
+            print(move, depth)
+            depth += 1
+            timeelapsed = perf_counter() - starttime
+            timeleft -= timeelapsed
+            if timeleft == 0:
+                self.continuesearch = False
+                
+            
+            
+
+        
+        # while in game
+
         bestmove = "bestmove " + str(move) + " \n"
         
         return bestmove
@@ -63,10 +93,8 @@ class EpicEngine:
         if not tokens:
             return
 
-        if tokens[0] == "t":
-            print("started")
-            await asyncio.sleep(2)
-            print("done")
+        if tokens[0] == "ping":
+            print("pong")
 
         if tokens[0] == "uci":
             output = f"id name {self.id}\nid author {self.author}\n"
@@ -158,6 +186,8 @@ class EpicEngine:
             except:
                 return
             return self.go(args)
+        elif tokens[0] == "stop":
+            self.continuesearch = False
                 
             
             
@@ -169,8 +199,10 @@ async def main():
     while True:
         cmd = input()
         # cmd = "go infinite"
-        result = await engine.parse_cmd(cmd)
-        print(result)
+        task = asyncio.create_task(engine.parse_cmd(cmd))
+        await task
+        # done, pending = 
+        # asyncio.ensure_future(engine.parse_cmd(cmd))
     
 
 if __name__ == "__main__":
