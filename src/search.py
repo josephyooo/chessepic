@@ -95,16 +95,15 @@ def negamaxalphabeta(self, depth, board, alpha, beta, player):
     legal_moves = get_moves(board, player)
     best_move = 0
     for move in legal_moves:
-        print(move)
         if self.stop_event.is_set():
-            break
+            return False
         board.push(move)
-        print(4)
-        score = negamaxalphabeta(self, depth - 1, board, -beta, -alpha, not player)
-        print(5)
+        result = negamaxalphabeta(self, depth - 1, board, -beta, -alpha, not player)
+        if not result:
+            return False
         last_move = board.pop()
-        if -score[0] > value:
-            value = -score[0]
+        if -result[0] > value:
+            value = -result[0]
             best_move = last_move
         if best_move == 0:
             best_move = legal_moves[0]

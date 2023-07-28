@@ -26,29 +26,28 @@ def evaluate_board(board):
     #based off of game state
     #endgame = majors and minors less than 6
     
-    earlygame = 3
-    midgame = 2
-    endgame = 1
+    # earlygame = 3
+    # midgame = 2
+    # endgame = 1
     
-    piecetypes = []
-    for square in board.pieces():
-        piece = board.piece_at(square)
-        if piece not in [chess.PAWN, chess.KING]:
-            piecetypes.append(piece)
-    piece_n = len(piecetypes)
-    if piece_n > 10:
-        gamestate = earlygame
-    elif piece_n > 5:
-        gamestate = midgame
-    else:
-        gamestate = endgame
-    chess
-    #castling, pushed pawns, knights in center, bishop developed    
-    lastmove = board.peek()
-    if board.is_castling(lastmove):
-        score += (3 * gamestate)
-    if board.piece_type_at(board.from_square) == chess.PAWN:
-        score += (gamestate)
+    # piecetypes = []
+    # for square in board.pieces():
+    #     piece = board.piece_at(square)
+    #     if piece not in [chess.PAWN, chess.KING]:
+    #         piecetypes.append(piece)
+    # piece_n = len(piecetypes)
+    # if piece_n > 10:
+    #     gamestate = earlygame
+    # elif piece_n > 5:
+    #     gamestate = midgame
+    # else:
+    #     gamestate = endgame
+    # #castling, pushed pawns, knights in center, bishop developed    
+    # lastmove = board.peek()
+    # if board.is_castling(lastmove):
+    #     score += (3 * gamestate)
+    # if board.piece_type_at(board.from_square) == chess.PAWN:
+    #     score += (gamestate)
     
     
 

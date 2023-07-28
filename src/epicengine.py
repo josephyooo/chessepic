@@ -14,7 +14,7 @@ class EpicEngine:
         self.active = True
         self.id = "EpicEngine"
         self.author = "the EpicEngine developers (see AUTHORS file)"
-        self.debug = False
+        self.debug = True
         self.board = chess.Board()
         # [curr, default, min, max]
         self.options = {
@@ -52,19 +52,22 @@ class EpicEngine:
                 timeleft = args.btime
         
         depth=1
-        move = 0
+        move = [move for move in self.board.legal_moves][0]
         starttime = perf_counter()
         while not self.stop_event.is_set():
-            print(1)
-            move = self.search(self, depth, self.board, -inf, inf, player)[1]
-            print(2)
-            print(move, depth)
-            depth += 1
-            timeelapsed = perf_counter() - starttime
-            timeleft -= timeelapsed
-            if timeleft == 0:
-                self.stop_event.set()
-        
+            result = self.search(self, depth, self.board, -inf, inf, player)
+            if result:
+                move = result[1]
+                print(move, depth)
+                depth += 1
+                timeelapsed = perf_counter() - starttime
+                timeleft -= timeelapsed
+                if timeleft == 0:
+                    self.stop_event.set()
+            else:
+                if self.debug:
+                    print("Search discarded")
+
         # while in game
 
         bestmove = "bestmove " + str(move) + " \n"
@@ -92,7 +95,7 @@ class EpicEngine:
         # first = args[0]
 
         if self.debug:
-            print(f"Parsing: {args}")
+            print(f"Parsing: {' '.join(args)}")
 
         if not args:
             return
