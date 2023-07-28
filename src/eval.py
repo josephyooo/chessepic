@@ -1,6 +1,5 @@
 from math import inf
 import chess
-from search import PIECE_TRANSLATE
 
 PIECE_VALUES = {
     "P": 1,

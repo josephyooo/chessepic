@@ -1,7 +1,8 @@
-import asyncio
 import argparse
 from math import inf
 from time import perf_counter
+from concurrent.futures import ThreadPoolExecutor
+from threading import Event
 
 import chess
 
@@ -9,17 +10,19 @@ from search import get_moves, negamaxalphabeta
 
 
 class EpicEngine:
-    def __init__(self):
+    def __init__(self, executor):
         self.active = True
         self.id = "EpicEngine"
         self.author = "the EpicEngine developers (see AUTHORS file)"
         self.debug = False
         self.board = chess.Board()
-        self.continuesearch = True
         # [curr, default, min, max]
         self.options = {
             # "Depth": [3,3,0,0],
         }
+        self.executor = executor
+        self.go_future = self.executor.submit(lambda: None)
+        self.stop_event = Event()
 
         self.search = negamaxalphabeta
     def go(self, args):
@@ -34,9 +37,6 @@ class EpicEngine:
         
         #search
         player = True if self.board.turn == chess.WHITE else False
-        
-
-        
 
         # get_moves(self.board, player)
         #eval
@@ -54,18 +54,16 @@ class EpicEngine:
         depth=1
         move = 0
         starttime = perf_counter()
-        while self.continuesearch:
-            move = negamaxalphabeta(self, depth, self.board, -inf, inf, player)[1]
+        while not self.stop_event.is_set():
+            print(1)
+            move = self.search(self, depth, self.board, -inf, inf, player)[1]
+            print(2)
             print(move, depth)
             depth += 1
             timeelapsed = perf_counter() - starttime
             timeleft -= timeelapsed
             if timeleft == 0:
-                self.continuesearch = False
-                
-            
-            
-
+                self.stop_event.set()
         
         # while in game
 
@@ -81,22 +79,28 @@ class EpicEngine:
     def set_board(self, fen):
         # resets board
         self.board.set_board_fen(fen)
+    
+    def parse_error(self, args, e = None):
+        msg = f"Error parsing command: {' '.join(args)}"
+        if e:
+            msg += "\n" + e
+        print(msg)
 
-    # implement asyncio, per https://backscattering.de/chess/uci/#responsiveness
-    async def parse_cmd(self, cmd):
+    def parse_cmd(self, args):
         # https://backscattering.de/chess/uci/#whitespace
-        tokens = cmd.split()
-
         # how fast are lookups? would this be faster?
-        # first = tokens[0]
+        # first = args[0]
 
-        if not tokens:
+        if self.debug:
+            print(f"Parsing: {args}")
+
+        if not args:
             return
 
-        if tokens[0] == "ping":
+        if args[0] == "ping":
             print("pong")
 
-        if tokens[0] == "uci":
+        if args[0] == "uci":
             output = f"id name {self.id}\nid author {self.author}\n"
             for key, value in self.options:
                 curr, default, min, max = value
@@ -113,31 +117,32 @@ class EpicEngine:
             
             output += "uciok\n"
 
-            return output
-        elif tokens[0] == "isready":
-            return "readyok"
-        elif tokens[0] == "setoption":
+            print(output)
+        elif args[0] == "isready":
+            print("readyok")
+        elif args[0] == "setoption":
             # do this: https://backscattering.de/chefdxss/uci/#gui-setoption-name
-            if tokens[1] == "name":
+            if args[1] == "name":
                 try:
-                    valuei = tokens.index("value")
+                    valuei = args.index("value")
                 except ValueError as e:
-                    return "Value must be provided."
+                    # print("Value must be provided.")
+                    if self.debug:
+                        return self.parse_error(args, e=e)
                 # except for no such option
-                self.options[tokens[2:valuei]] = tokens[valuei + 1:]
-        elif tokens[0] == "ucinewgame":
+                self.options[args[2:valuei]] = args[valuei + 1:]
+        elif args[0] == "ucinewgame":
             self.board.reset()
-            return "got it"
 
-        elif tokens[0] == "position":
+        elif args[0] == "position":
             try:
-                movesi = tokens.index("moves")
+                movesi = args.index("moves")
             except ValueError as e:
                 movesi = -1
             if movesi != 2:
-                mode = tokens[1]
+                mode = args[1]
                 if mode == "fen":
-                    self.set_board(tokens[2])
+                    self.set_board(args[2])
                     return
                 elif mode == "startpos":
                     self.board.reset()
@@ -145,22 +150,23 @@ class EpicEngine:
             
             if movesi == 2:
                 moves = []
-                if tokens.index("startpos") == 1:
+                if args.index("startpos") == 1:
                     self.board.reset()
-                for movetoken in tokens[movesi+1:]:
+                for movetoken in args[movesi+1:]:
                     move = chess.Move.from_uci(movetoken)
                     if move in self.board.legal_moves:
                         moves.append(move)
                         self.board.push(move)
                     else:
-                        return "Invalid move"
+                        # print("Invalid move")
+                        return self.parse_error(args)
                 
                 # if moves:
                 #     for move in moves:
                 #         self.board.push(move)
             #return "Error: position [ fen <fenstring> | <startpos> ] moves <move1> ... <movei>"
-        elif tokens[0] == "go":
-            options = " ".join(tokens[1:])
+        elif args[0] == "go":
+            options = " ".join(args[1:])
             potential_options = "searchmoves ponder wtime btime winc binc movestogo depth nodes mate movetime infinite".split()
             for pot_opt in potential_options:
                 options = options.replace(pot_opt, "--" + pot_opt)
@@ -182,28 +188,33 @@ class EpicEngine:
             parser.add_argument("--infinite", dest = "movetime", action = "store_const", const = inf, default = argparse.SUPPRESS)
 
             try:
-                args = parser.parse_args(options)
-            except:
-                return
-            return self.go(args)
-        elif tokens[0] == "stop":
-            self.continuesearch = False
+                go_args = parser.parse_args(options)
+            except Exception as e:
+                return self.parse_error(args, e)
+            
+            self.stop_event.clear()
+            self.go_future = self.executor.submit(self.go, go_args)
+        elif args[0] == "stop":
+            if self.go_future.running():
+                if self.debug:
+                    print("Stopping go")
+                self.stop_event.set()
+                self.go_future.result()
+            else:
+                if self.debug:
+                    print("Go is not running")
+        else:
+            return self.parse_error(args)
                 
-            
-            
 
 
-            
-async def main():
-    engine = EpicEngine()
-    while True:
-        cmd = input()
-        # cmd = "go infinite"
-        task = asyncio.create_task(engine.parse_cmd(cmd))
-        await task
-        # done, pending = 
-        # asyncio.ensure_future(engine.parse_cmd(cmd))
+def main():
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        engine = EpicEngine(executor)
+        while True:
+            args = input().split()
+            engine.parse_cmd(args)
     
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
