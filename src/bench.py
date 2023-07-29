@@ -31,7 +31,7 @@ async def main():
             move = generate_random_move(board)
 
             whitetime += perf_counter() - start
-            
+
         else:
             fen_position = board.fen().split()[0]
             engine.set_board(fen_position)
@@ -58,15 +58,17 @@ async def main():
             print(board)
             print(e, move)
 
-
     print(board)
     print(board.fullmove_number)
     print(board.outcome())
     print(board.peek())
     print(evaluate_board(board))
     half_moves = board.fullmove_number // 2
-    print(f"White time: {whitetime} ({whitetime / half_moves} per move), Black time: {blacktime} ({blacktime / half_moves} per move)")
+    print(
+        f"White time: {whitetime} ({whitetime / half_moves} per move), Black time: {blacktime} ({blacktime / half_moves} per move)"
+    )
     # print(f"{blacktime / whitetime}")
+
 
 if __name__ == "__main__":
     while True:
