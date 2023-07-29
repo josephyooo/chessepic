@@ -6,7 +6,7 @@ import chess
 from eval import evaluate_board, PIECE_VALUES
 
 
-def get_moves(board, player):
+def get_moves(board, player, captures_only=False):
     """
     returns list of moves in optimized order
     attacks **pinned pieces still attack**
@@ -36,6 +36,8 @@ def get_moves(board, player):
 
     color = chess.WHITE if player else chess.BLACK
     moves = [i for i in board.legal_moves]
+    if captures_only:
+        moves = [move for move in moves if move.is_capture()]
     # for the moves in list, order by piece type| piece_type_at
     # from moves find piece type at from square
     pieces = []
@@ -99,21 +101,35 @@ def user_move(board):
 #         return (min, best_move)
 
 
-def negamaxalphabeta(self, depth, board, alpha, beta, player):
+def static_evaluation(board, player):
+    evaluation = evaluate_board(board)
+    if not player:
+        evaluation *= -1
+    return evaluation
+
+
+def negamaxalphabeta(self, depth, board, alpha, beta, player, captures_only):
     if depth == 0:
-        evaluation = evaluate_board(board)
-        if not player:
-            evaluation *= -1
-        return (evaluation, board.peek())
+        # search remaining captures
+        result = negamaxalphabeta(self, -1, board, -beta, -alpha, not player, True)
+        # if not result:
+        #     evaluation = static_evaluation(board, player)
+        #     return (evaluation, board.peek())
+        return result
 
     value = -inf
-    legal_moves = get_moves(board, player)
+    legal_moves = get_moves(board, player, captures_only=captures_only)
+    if not legal_moves and captures_only:
+        evaluation = static_evaluation(board, player)
+        return (evaluation, board.peek())
     best_move = 0
     for move in legal_moves:
         if self.stop_event.is_set():
             return False
         board.push(move)
-        result = negamaxalphabeta(self, depth - 1, board, -beta, -alpha, not player)
+        result = negamaxalphabeta(
+            self, depth - 1, board, -beta, -alpha, not player, captures_only
+        )
         if not result:
             return False
         last_move = board.pop()

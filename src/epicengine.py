@@ -47,7 +47,7 @@ class EpicEngine:
         move = [move for move in self.board.legal_moves][0]
         starttime = perf_counter()
         while not self.stop_event.is_set():
-            result = self.search(self, depth, self.board, -inf, inf, player)
+            result = self.search(self, depth, self.board, -inf, inf, player, False)
             if result:
                 move = result[1]
                 print(move, depth)

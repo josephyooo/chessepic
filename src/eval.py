@@ -58,7 +58,7 @@ def evaluate_board(board):
     lastmove = board.peek()
     if board.is_castling(lastmove):
         score += 3 * gamestate
-    if board.piece_type_at(lastmove.from_square) == chess.PAWN:
+    if board.piece_type_at(lastmove.to_square) == chess.PAWN:
         score += 1 / gamestate
 
     for piece in fen:
