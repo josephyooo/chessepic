@@ -15,11 +15,11 @@ class EpicEngine:
         self.active = True
         self.id = "EpicEngine"
         self.author = "the EpicEngine developers (see AUTHORS file)"
-        self.debug = True
+        self.debug = False
         self.board = chess.Board()
         # [curr, default, min, max]
         self.options = {
-            "Depth": [10, 5, 0, 0],
+            # "Depth": [10, 5, 0, 0],
         }
         self.executor = executor
         self.go_future = self.executor.submit(lambda: None)
@@ -37,28 +37,28 @@ class EpicEngine:
         # info is depth, seldepth, time, nodes, pv, multipv, score(cp, mate, lowerbound, upperbound, currmove, currmovenumber, hashfull,
         # nps, tbhits, sbhits, cpuload, string, refutation, currline, )
         # return best_move and ponder
-        timeleft = 0
-        if args.wtime or args.btime:
-            if player:
-                timeleft = args.wtime
-            else:
-                timeleft = args.btime
+        # timeleft = 0
+        # if args.wtime or args.btime:
+        #     if player:
+        #         timeleft = args.wtime
+        #     else:
+        #         timeleft = args.btime
 
         # depth = 1
         move = [move for move in self.board.legal_moves][0]
         # while not self.stop_event.is_set():
-        starttime = perf_counter()
+        # starttime = perf_counter()
         self.nodes = 0
-        result = self.search(self, 4, self.board, -inf, inf, player, False)
-        timeelapsed = perf_counter() - starttime
-        timeleft -= timeelapsed
-        if timeleft == 0 or depth == self.options["Depth"][0]:
-            self.stop_event.set()
+        result = self.search(self, 3, self.board, -inf, inf, player, False)
+        # timeelapsed = perf_counter() - starttime
+        # timeleft -= timeelapsed
+        # if timeleft == 0 or depth == self.options["Depth"][0]:
+        #     self.stop_event.set()
         if result:
             move = result[1]
-            if self.debug:
-                print(move, depth, self.nodes, self.nodes / timeelapsed)
-            depth += 1
+            # if self.debug:
+            #     print(move, depth, self.nodes, self.nodes / timeelapsed)
+            # depth += 1
         else:
             if self.debug:
                 print("Search discarded")
@@ -101,7 +101,7 @@ class EpicEngine:
 
         if args[start_i] == "uci":
             output = f"id name {self.id}\nid author {self.author}\n"
-            for key, value in self.options:
+            for key, value in self.options.items():
                 curr, default, min, max = value
                 output += f"option name {key} type {default.__class__.__name__} default"
                 if default:
