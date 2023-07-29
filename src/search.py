@@ -5,6 +5,23 @@ import chess
 
 from eval import evaluate_board, PIECE_VALUES
 
+PIECE_TYPES = [
+    chess.PAWN,
+    chess.KNIGHT,
+    chess.BISHOP,
+    chess.ROOK,
+    chess.QUEEN,
+    chess.KING,
+]
+
+PIECE_TRANSLATE = {
+    chess.PAWN: "P",
+    chess.KNIGHT: "N",
+    chess.BISHOP: "B",
+    chess.ROOK: "R",
+    chess.QUEEN: "Q",
+    chess.KING: "K",
+}
 
 def get_moves(board, player, captures_only=False):
     """
@@ -13,31 +30,12 @@ def get_moves(board, player, captures_only=False):
     is_attacked
     attackers see above
     pin command
-
-
     """
-    PIECE_TYPES = [
-        chess.PAWN,
-        chess.KNIGHT,
-        chess.BISHOP,
-        chess.ROOK,
-        chess.QUEEN,
-        chess.KING,
-    ]
 
-    PIECE_TRANSLATE = {
-        chess.PAWN: "P",
-        chess.KNIGHT: "N",
-        chess.BISHOP: "B",
-        chess.ROOK: "R",
-        chess.QUEEN: "Q",
-        chess.KING: "K",
-    }
-
-    color = chess.WHITE if player else chess.BLACK
+    # color = chess.WHITE if player else chess.BLACK
     moves = [i for i in board.legal_moves]
     if captures_only:
-        moves = [move for move in moves if move.is_capture()]
+        moves = [move for move in moves if board.is_capture(move)]
     # for the moves in list, order by piece type| piece_type_at
     # from moves find piece type at from square
     pieces = []
@@ -121,6 +119,7 @@ def negamaxalphabeta(self, depth, board, alpha, beta, player, captures_only):
     legal_moves = get_moves(board, player, captures_only=captures_only)
     if not legal_moves and captures_only:
         evaluation = static_evaluation(board, player)
+        self.nodes += 1
         return (evaluation, board.peek())
     best_move = 0
     for move in legal_moves:

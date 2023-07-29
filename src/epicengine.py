@@ -19,11 +19,12 @@ class EpicEngine:
         self.board = chess.Board()
         # [curr, default, min, max]
         self.options = {
-            "Depth": [5, 5, 0, 0],
+            "Depth": [10, 5, 0, 0],
         }
         self.executor = executor
         self.go_future = self.executor.submit(lambda: None)
         self.stop_event = Event()
+        self.nodes = 0
 
         self.search = negamaxalphabeta
 
@@ -45,17 +46,19 @@ class EpicEngine:
 
         depth = 1
         move = [move for move in self.board.legal_moves][0]
-        starttime = perf_counter()
         while not self.stop_event.is_set():
+            starttime = perf_counter()
+            self.nodes = 0
             result = self.search(self, depth, self.board, -inf, inf, player, False)
+            timeelapsed = perf_counter() - starttime
+            timeleft -= timeelapsed
+            if timeleft == 0 or depth == self.options["Depth"][0]:
+                self.stop_event.set()
             if result:
                 move = result[1]
-                print(move, depth)
+                if self.debug:
+                    print(move, depth, self.nodes, self.nodes / timeelapsed)
                 depth += 1
-                timeelapsed = perf_counter() - starttime
-                timeleft -= timeelapsed
-                if timeleft == 0 or depth == self.options("Depth")[0]:
-                    self.stop_event.set()
             else:
                 if self.debug:
                     print("Search discarded")
