@@ -44,24 +44,24 @@ class EpicEngine:
             else:
                 timeleft = args.btime
 
-        depth = 1
+        # depth = 1
         move = [move for move in self.board.legal_moves][0]
-        while not self.stop_event.is_set():
-            starttime = perf_counter()
-            self.nodes = 0
-            result = self.search(self, depth, self.board, -inf, inf, player, False)
-            timeelapsed = perf_counter() - starttime
-            timeleft -= timeelapsed
-            if timeleft == 0 or depth == self.options["Depth"][0]:
-                self.stop_event.set()
-            if result:
-                move = result[1]
-                if self.debug:
-                    print(move, depth, self.nodes, self.nodes / timeelapsed)
-                depth += 1
-            else:
-                if self.debug:
-                    print("Search discarded")
+        # while not self.stop_event.is_set():
+        starttime = perf_counter()
+        self.nodes = 0
+        result = self.search(self, 4, self.board, -inf, inf, player, False)
+        timeelapsed = perf_counter() - starttime
+        timeleft -= timeelapsed
+        if timeleft == 0 or depth == self.options["Depth"][0]:
+            self.stop_event.set()
+        if result:
+            move = result[1]
+            if self.debug:
+                print(move, depth, self.nodes, self.nodes / timeelapsed)
+            depth += 1
+        else:
+            if self.debug:
+                print("Search discarded")
 
         bestmove = "bestmove " + str(move) + " \n"
 

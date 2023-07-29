@@ -1,62 +1,58 @@
 from time import perf_counter
 from math import inf
-import asyncio
+from concurrent.futures import ThreadPoolExecutor
 
 import chess
 import chess.engine
 
 from eval import evaluate_board
-from search import negamax, negamaxalphabeta, generate_random_move, user_move
+from search import negamaxalphabeta, generate_random_move, user_move
 from epicengine import EpicEngine
 
+# from ../../chessepic-old/src import EpicEngine as oldEngine
 
 
-async def main():
+
+def main():
     board = chess.Board()
     # board.set_board_fen("")
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        newengine = EpicEngine(executor=executor)
+        # oldengine = oldengine()
+        from time import sleep
 
-    engine = EpicEngine()
-    from time import sleep
+        whitetime = 0
+        blacktime = 0
+        while not board.is_checkmate():
+            # print("-"*10)
+            # print(board.fen())
+            # print(board)
+            start = perf_counter()
+            if board.is_game_over():
+                break
+            if board.turn:
+                move = generate_random_move(board)
+                # fen_position = board.fen().split()[0]
+                # oldengine.set_board(fen_position)
+                # oldengine.board.turn = chess.BLACK
 
-    whitetime = 0
-    blacktime = 0
-    while not board.is_checkmate():
-        # print("-"*10)
-        # print(board.fen())
-        # print(board)
-        start = perf_counter()
-        if board.is_game_over():
-            break
-        if board.turn:
-            move = generate_random_move(board)
+                # move = newengine.go()
+                # whitetime += perf_counter() - start
 
-            whitetime += perf_counter() - start
+            else:
+                fen_position = board.fen().split()[0]
+                newengine.set_board(fen_position)
+                newengine.board.turn = chess.BLACK
 
-        else:
-            fen_position = board.fen().split()[0]
-            engine.set_board(fen_position)
-            engine.board.turn = chess.BLACK
-            # task = asyncio.create_task(engine.go(0))
-            task = asyncio.ensure_future(engine.go(0))
-            print(1)
-            sleep(1)
-            task.cancel()
-            print(2)
-            # try:
-            # except asyncio.CancelledError:
-            #     print(3)
-            #     print(task.cancelled())
-            # engine.stop()
-                # move = engine.best_move
-
-            # move = negamaxalphabeta(3, board, -inf, inf, False)[1]
-            
-            blacktime += perf_counter() - start
-        try:
-            board.push(move)
-        except (AttributeError, AssertionError) as e:
-            print(board)
-            print(e, move)
+                newengine.parse_cmd("go").split()[-1]
+                # move = negamaxalphabeta(3, board, -inf, inf, False)[1]
+                
+                blacktime += perf_counter() - start
+            try:
+                board.push(move)
+            except (AttributeError, AssertionError) as e:
+                print(board)
+                print(e, move)
 
     print(board)
     print(board.fullmove_number)
@@ -72,5 +68,5 @@ async def main():
 
 if __name__ == "__main__":
     while True:
-        asyncio.run(main())
+        main()
         input()
