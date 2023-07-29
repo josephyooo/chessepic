@@ -3,6 +3,7 @@ from math import inf
 from time import perf_counter
 from concurrent.futures import ThreadPoolExecutor
 from threading import Event
+import sys
 
 import chess
 
@@ -72,7 +73,7 @@ class EpicEngine:
 
         bestmove = "bestmove " + str(move) + " \n"
         
-        return bestmove
+        print(bestmove)
 
         #self.board.push(move)
 
@@ -96,14 +97,20 @@ class EpicEngine:
 
         if self.debug:
             print(f"Parsing: {' '.join(args)}")
+            if args[0] == "ping":
+                print("pong")
 
         if not args:
             return
 
-        if args[0] == "ping":
-            print("pong")
 
-        if args[0] == "uci":
+        start_i = -1
+        for i in range(len(args)):
+            if args[i] in "uci isready setoption ucinewgame debug position go stop quit".split():
+                start_i=i
+                break
+
+        if args[start_i] == "uci":
             output = f"id name {self.id}\nid author {self.author}\n"
             for key, value in self.options:
                 curr, default, min, max = value
@@ -121,9 +128,9 @@ class EpicEngine:
             output += "uciok\n"
 
             print(output)
-        elif args[0] == "isready":
+        elif args[start_i] == "isready":
             print("readyok")
-        elif args[0] == "setoption":
+        elif args[start_i] == "setoption":
             # do this: https://backscattering.de/chefdxss/uci/#gui-setoption-name
             if args[1] == "name":
                 try:
@@ -133,27 +140,32 @@ class EpicEngine:
                     if self.debug:
                         return self.parse_error(args, e=e)
                 # except for no such option
-                self.options[args[2:valuei]] = args[valuei + 1:]
-        elif args[0] == "ucinewgame":
+                self.options[args[start_i + 2:valuei]] = args[valuei + 1:]
+        elif args[start_i] == "ucinewgame":
             self.board.reset()
+        elif args[start_i] == "debug":
+            if args[1] == "on":
+                self.debug = True
+            elif args[1] == "off":
+                self.debug = False
 
-        elif args[0] == "position":
+        elif args[start_i] == "position":
             try:
                 movesi = args.index("moves")
             except ValueError as e:
                 movesi = -1
-            if movesi != 2:
+            if movesi != start_i + 2:
                 mode = args[1]
                 if mode == "fen":
-                    self.set_board(args[2])
+                    self.set_board(args[start_i + 2])
                     return
                 elif mode == "startpos":
                     self.board.reset()
                     return
             
-            if movesi == 2:
+            if movesi == start_i + 2:
                 moves = []
-                if args.index("startpos") == 1:
+                if args.index("startpos") == start_i + 1:
                     self.board.reset()
                 for movetoken in args[movesi+1:]:
                     move = chess.Move.from_uci(movetoken)
@@ -168,8 +180,8 @@ class EpicEngine:
                 #     for move in moves:
                 #         self.board.push(move)
             #return "Error: position [ fen <fenstring> | <startpos> ] moves <move1> ... <movei>"
-        elif args[0] == "go":
-            options = " ".join(args[1:])
+        elif args[start_i] == "go":
+            options = " ".join(args[start_i + 1:])
             potential_options = "searchmoves ponder wtime btime winc binc movestogo depth nodes mate movetime infinite".split()
             for pot_opt in potential_options:
                 options = options.replace(pot_opt, "--" + pot_opt)
@@ -194,10 +206,12 @@ class EpicEngine:
                 go_args = parser.parse_args(options)
             except Exception as e:
                 return self.parse_error(args, e)
+            if self.debug:
+                print(go_args)
             
             self.stop_event.clear()
             self.go_future = self.executor.submit(self.go, go_args)
-        elif args[0] == "stop":
+        elif args[start_i] == "stop":
             if self.go_future.running():
                 if self.debug:
                     print("Stopping go")
@@ -206,6 +220,8 @@ class EpicEngine:
             else:
                 if self.debug:
                     print("Go is not running")
+        elif args[start_i] == "quit":
+            sys.exit(0)
         else:
             return self.parse_error(args)
                 
