@@ -18,7 +18,7 @@ class EpicEngine:
         self.board = chess.Board()
         # [curr, default, min, max]
         self.options = {
-            # "Depth": [3,3,0,0],
+            "Depth": [5,5,0,0],
         }
         self.executor = executor
         self.go_future = self.executor.submit(lambda: None)
@@ -62,7 +62,7 @@ class EpicEngine:
                 depth += 1
                 timeelapsed = perf_counter() - starttime
                 timeleft -= timeelapsed
-                if timeleft == 0:
+                if timeleft == 0 or depth == self.options("Depth")[0]:
                     self.stop_event.set()
             else:
                 if self.debug:
